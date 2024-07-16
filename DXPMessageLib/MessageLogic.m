@@ -36,8 +36,18 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
+        self.pageSize = 6;
+        self.currentPage = 1;
     }
     return self;
+}
+
+- (void)setPageSize:(NSInteger)pageSize {
+    _pageSize = pageSize;
+}
+
+- (void)setCurrentPage:(NSInteger)currentPage {
+    _currentPage = currentPage;
 }
 
 // Request unread messages
@@ -52,9 +62,45 @@
 //    [self.messageViewModel messageList];
 //}
 
-- (void)requestMessageListByPageInfo:(NSDictionary *)pageInfoDic block:(MessageListBlock)messageListBlock {
+- (NSInteger)gitCurrentPageNumber {
+    return self.currentPage;
+}
+
+- (void)gitCurrentPageSizeWithCompletion:(void (^)(NSInteger pageSize, NSString *errorMsg))completion {
+    [self requestMessageListByPageInfoWithBlock:^(MessageListModel *messageListModel, NSString *errorMsg) {
+        NSInteger pageSize = messageListModel.messageList.count;
+        if (completion) {
+            completion(pageSize, nil);
+        }
+    }];
+}
+
+
+// Pull up to refresh
+- (void)refreshMessageList {
+    self.currentPage = 1;
+    [self requestMessageListByPageInfoWithBlock:^(MessageListModel *messageListModel, NSString *errorMsg) {
+        if (self.refresMessage) {
+            self.refresMessage(messageListModel);
+        }
+    }];
+}
+
+// Pull down to load
+- (void)loadMorMessageList{
+    ++self.currentPage;
+    [self requestMessageListByPageInfoWithBlock:^(MessageListModel *messageListModel, NSString *errorMsg) {
+        if (self.refresMessage) {
+            self.refresMessage(messageListModel);
+        }
+    }];
+}
+
+- (void)requestMessageListByPageInfoWithBlock:(MessageListBlock)messageListBlock {
     self.messageListBlock = messageListBlock;
-    [self.messageViewModel messageList:pageInfoDic];
+    
+    NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)}};
+    [self.messageViewModel messageList:dic];
 }
 
 // Request Message Details

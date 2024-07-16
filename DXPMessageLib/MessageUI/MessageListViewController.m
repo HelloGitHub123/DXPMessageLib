@@ -32,7 +32,7 @@
 // 需要删除的数组列表 存放id<String>类型
 @property (nonatomic, strong) NSMutableArray<NSString *> *deleteMessageList;
 @property (nonatomic, assign) BOOL isEdit;
-@property (nonatomic, assign) int currentPage;
+//@property (nonatomic, assign) int currentPage;
 
 @property (nonatomic, strong) UIBarButtonItem * rightBtn;
 @property (nonatomic, strong) UIBarButtonItem * cancelBtn;
@@ -40,6 +40,13 @@
 @end
 
 @implementation MessageListViewController
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+    }
+    return self;
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -65,6 +72,8 @@
     [self updateEditState];
 }
 
+
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -89,7 +98,7 @@
 //    [self.messageLogic setHttpRequestToken:strToken];
     
     // 请求消息列表
-    [self mjRefreshHeader];
+    [self requestMessageList];
 
     [self setRefreshState:YES];
     
@@ -97,7 +106,7 @@
     [self requestUnReadMessages];
     
     // 初始化底部view
-    [[UIApplication sharedApplication].keyWindow addSubview:self.bottomOperView];
+    [[UIApplication sharedApplication].delegate.window addSubview:self.bottomOperView];
     
 	// 埋点
 	if (self.trackManagementBlock) {
@@ -161,7 +170,6 @@
     self.messageList = [[NSMutableArray alloc] init];
     self.deleteMessageList = [[NSMutableArray alloc] init];
     self.isEdit = NO;
-    self.currentPage = 1;
     
     [self.view addSubview:self.vTableview];
     [self.vTableview mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -191,13 +199,26 @@
 }
 
 // 请求消息列表
+- (void)requestMessageList {
+    __weak typeof(self) weakSelf = self;
+    [self.messageLogic requestMessageListByPageInfoWithBlock:^(MessageListModel *messageListModel, NSString *errorMsg) {
+        [weakSelf updateMessageList:messageListModel];
+    }];
+}
+
+// 下拉刷新
 - (void)mjRefreshHeader {
     if ([self.vTableview.mj_header isRefreshing]) {
         [self.vTableview.mj_header endRefreshing];
     }
-    self.currentPage = 1;
-    NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@"6"}};
-    [self requestMessageList:dic];
+    [self.messageLogic refreshMessageList];
+    
+    __weak typeof(self) weakSelf = self;
+    _messageLogic.refresMessage = ^(MessageListModel * _Nonnull messageModel) {
+        [weakSelf updateMessageList:messageModel];
+    };
+    
+    
 }
 
 // 上拉加载更多
@@ -205,8 +226,24 @@
     if ([self.vTableview.mj_footer isRefreshing]) {
         [self.vTableview.mj_footer endRefreshing];
     }
-    NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(++self.currentPage),@"pageSize":@"6"}};
-    [self requestMessageList:dic];
+    
+    [self.messageLogic loadMorMessageList];
+    
+    __weak typeof(self) weakSelf = self;
+    _messageLogic.refresMessage = ^(MessageListModel * _Nonnull messageModel) {
+        [weakSelf updateMessageList:messageModel];
+    };
+    
+    NSInteger currentPage = [self.messageLogic gitCurrentPageNumber];
+    NSLog(@"---------%ld",(long)currentPage);
+    
+    [self.messageLogic gitCurrentPageSizeWithCompletion:^(NSInteger pageSize, NSString *errorMsg) {
+        if (errorMsg) {
+            NSLog(@"Error: %@", errorMsg);
+        } else {
+            NSLog(@"Current Page Size: %ld", (long)pageSize);
+        }
+    }];
 }
 
 // edit
@@ -313,7 +350,7 @@
 
 // unRead Messages
 - (void)requestUnReadMessages {
-    [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].keyWindow Message:@""];
+    [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].delegate.window Message:@""];
     __weak typeof(self) weakSelf = self;
     [self.messageLogic requestUnreadMessageWithBlock:^(UnreadMessageModel *unreadMessageModel, NSString *errorMsg) {
         [SNAlertMessage hideLoading];
@@ -328,32 +365,32 @@
 }
 
 // List of request messages
-- (void)requestMessageList:(NSDictionary *)pageInfoDic {
-//    [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].keyWindow Message:@""];
-    __weak typeof(self) weakSelf = self;
-    [self.messageLogic requestMessageListByPageInfo:pageInfoDic block:^(MessageListModel *messageListModel, NSString *errorMsg) {
-        [SNAlertMessage hideLoading];
-        if (messageListModel) {
-            if (messageListModel.messageList.count > 0) {
-                if (weakSelf.currentPage == 1) {
-                    [weakSelf.messageList removeAllObjects];
-                }
-                [weakSelf.messageList addObjectsFromArray:messageListModel.messageList];
-                [weakSelf.vTableview reloadData];
+- (void)updateMessageList:(MessageListModel *)messageListModel {
+    if (messageListModel) {
+        if (messageListModel.messageList.count > 0) {
+            if (self.messageLogic.currentPage == 1) {
+                [self.messageList removeAllObjects];
             }
-            // 判断导航栏edit是否隐藏
-            if (weakSelf.messageList.count == 0) {
-                weakSelf.navigationItem.rightBarButtonItem = nil;
-                weakSelf.readAllBtn.hidden = YES;
-                weakSelf.readAllBtn.userInteractionEnabled = NO;
-            } else {
-                weakSelf.navigationItem.rightBarButtonItem = self.rightBtn;
-                weakSelf.readAllBtn.hidden = NO;
-                weakSelf.readAllBtn.userInteractionEnabled = YES;
-            }
-            [weakSelf.vTableview showEmptyViewRowCount:weakSelf.messageList.count];
+            [self.messageList addObjectsFromArray:messageListModel.messageList];
+            
+            [self.vTableview reloadData];
         }
-    }];
+        // 判断导航栏edit是否隐藏
+        if (self.messageList.count == 0) {
+            self.navigationItem.rightBarButtonItem = nil;
+            self.readAllBtn.hidden = YES;
+            self.readAllBtn.userInteractionEnabled = NO;
+        } else {
+            self.navigationItem.rightBarButtonItem = self.rightBtn;
+            self.readAllBtn.hidden = NO;
+            self.readAllBtn.userInteractionEnabled = YES;
+        }
+        [self.vTableview showEmptyViewRowCount:self.messageList.count];
+        if (self.showMessageListComplete) {
+            self.showMessageListComplete();
+        }
+    }
+        
 }
 
 // Set messages to be read 设置单个信息已读
@@ -363,7 +400,7 @@
 		self.trackManagementBlock(@"ReadSingleMessage", @{});
 	}
 
-    [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].keyWindow Message:@""];
+    [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].delegate.window Message:@""];
     __weak typeof(self) weakSelf = self;
     [self.messageLogic requestMessageSetReadByMessageIds:messageIds userId:@"" state:@"R" eventCode:@"" block:^(MarkMessageReadModel *markMessageReadModel, NSString *errorMsg) {
         [SNAlertMessage hideLoading];
@@ -393,7 +430,7 @@
     [popView show];
     __weak typeof(self) weakSelf = self;
     popView.okBlock = ^(NSString *text) {
-        [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].keyWindow Message:@""];
+        [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].delegate.window Message:@""];
         [weakSelf.messageLogic requestDeleteMessageByMessageIds:message.messageId block:^(DeleteMessageModel *deleteMessageModel, NSString *errorMsg) {
             [SNAlertMessage hideLoading];
             if (deleteMessageModel) {
@@ -444,7 +481,7 @@
                 NSString *idStr = [self.deleteMessageList objectAtIndex:i];
                 strIds = [strIds stringByAppendingFormat:@",%@",idStr];
             }
-            [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].keyWindow Message:@""];
+            [SNAlertMessage displayLoadingInViewInView:[UIApplication sharedApplication].delegate.window Message:@""];
             [weakSelf.messageLogic requestDeleteMessageByMessageIds:strIds block:^(DeleteMessageModel *deleteMessageModel, NSString *errorMsg) {
                 [SNAlertMessage hideLoading];
                 if (deleteMessageModel) {
@@ -577,10 +614,19 @@
     // detail
     MessageDetailViewController *detailVC = [[MessageDetailViewController alloc] init];
 	detailVC.styleModel = self.styleModel;
+    detailVC.showMessageDetailListComplete = ^{
+        NSLog(@"站内信详情列表显示完成");
+    };
+    detailVC.clickUrl = ^(NSURL * _Nonnull url) {
+        NSLog(@"点击了%@链接",url);
+    };
     @try {
         [detailVC.paramsDic setValue:messageModel forKey:@"messageModel"];
     } @catch (NSException *exception) {
         
+    }
+    if (self.onMessageClick) {
+        self.onMessageClick(messageModel);
     }
     [self.navigationController pushViewController:detailVC animated:YES];
     
@@ -645,6 +691,9 @@
 - (MessageLogic *)messageLogic {
     if (!_messageLogic) {
         _messageLogic = [[MessageLogic alloc] init];
+        _messageLogic.pageSize = 8;
+        _messageLogic.currentPage = 2;
+        
     }
     return _messageLogic;
 }

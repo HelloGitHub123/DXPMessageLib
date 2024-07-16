@@ -16,6 +16,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MessageDetailViewController : UMBaseViewController
 
 @property (nonatomic, strong) MessageStyleModel *styleModel;
+
+// 列表详情显示完成
+@property (nonatomic, copy) void (^showMessageDetailListComplete)(void);
+
+// 点击了URL
+@property (nonatomic, copy) void (^clickUrl)(NSURL *url);
 @end
 
 NS_ASSUME_NONNULL_END

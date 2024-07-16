@@ -46,7 +46,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// eg: List of request messages
 /// @param pageInfoDic 页面信息参数
 /// @param messageListBlock Return data callback
-- (void)requestMessageListByPageInfo:(NSDictionary *)pageInfoDic block:(MessageListBlock)messageListBlock;
+- (void)requestMessageListByPageInfoWithBlock:(MessageListBlock)messageListBlock;
 
 /// eg: Request Message Details
 /// @param messageId Single message id
@@ -75,11 +75,31 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)requestDeleteAllMessageWithBlock:(DeleteAllMessageBlock)deleteAllMessageBlock;
 
 ///// eg:Set request host Url
-//- (void)setRequestHostUrl:(NSString *)hostUrl;
+- (void)setRequestHostUrl:(NSString *)hostUrl;
 
 /// eg:Set request token
 /// @param token Unique identification
 - (void)setHttpRequestToken:(NSString *)token;
+
+/// Pull up to refresh
+- (void)refreshMessageList;
+
+/// Pull down to load
+- (void)loadMorMessageList;
+
+/// Get the current page number
+- (NSInteger)gitCurrentPageNumber;
+
+/// Get the current page size
+- (void)gitCurrentPageSizeWithCompletion:(void (^)(NSInteger pageSize, NSString *errorMsg))completion;
+
+/// Set the number of information per page
+@property (nonatomic, assign) NSInteger pageSize;
+
+/// Set the current page number
+@property (nonatomic, assign) NSInteger currentPage;
+
+@property (nonatomic, copy) void (^refresMessage)(MessageListModel *messageModel);
 
 @end
 

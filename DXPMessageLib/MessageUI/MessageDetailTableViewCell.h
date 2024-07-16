@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *imgURl;
 @property (nonatomic, assign) CGFloat h_imgView;
 @property (nonatomic, copy) NSMutableAttributedString *messageStr;
+
+// 点击了URL
+@property (nonatomic, copy) void (^clickDetailUrl)(NSURL *url);
 @end
 
 NS_ASSUME_NONNULL_END

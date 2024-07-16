@@ -11,7 +11,7 @@
 #import "MessageLogic.h"
 #import "MessageHeader.h"
 
-@interface MessageDetailTableViewCell ()
+@interface MessageDetailTableViewCell ()<UITextViewDelegate>
 
 @end
 
@@ -102,6 +102,16 @@
     }];
 }
 
+#pragma mark - UITextViewDelegate 点富文本
+- (BOOL)textView:(UITextView *)textView shouldInteractWithURL:(NSURL *)URL inRange:(NSRange)characterRange interaction:(UITextItemInteraction)interaction  API_AVAILABLE(ios(10.0)){
+  
+    if(self.clickDetailUrl) {
+        self.clickDetailUrl(URL);
+    }
+    
+    return YES;
+}
+
 #pragma mark -- lazy load
 - (UILabel *)messageTitleLab {
     if (!_messageTitleLab) {
@@ -129,6 +139,7 @@
         _messageTextView = [[UITextView alloc] init];
         _messageTextView.editable = NO;
         _messageTextView.scrollEnabled = NO;
+        _messageTextView.delegate = self;
         _messageTextView.textColor = UIColorFromRGB_um(0x242424);
 		_messageTextView.font = [UIFont systemFontOfSize:14];
         _messageTextView.dataDetectorTypes = UIDataDetectorTypeAll;

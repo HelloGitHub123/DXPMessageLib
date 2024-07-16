@@ -18,8 +18,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) NSString *token;
 
+
+
 // 埋点回调抛出
 @property (nonatomic, copy) void (^trackManagementBlock)(NSString *trackName, NSDictionary *withProperties);
+
+// 列表显示完成
+@property (nonatomic, copy) void (^showMessageListComplete)(void);
+
+// 某条站内信被点击
+@property (nonatomic, copy) void (^onMessageClick)(Message *messageModel);
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -70,6 +70,10 @@
         if (messageDetailModel) {
             self.messageDetailModel = messageDetailModel;
             [self.tableView reloadData];
+            
+            if (self.showMessageDetailListComplete){
+                self.showMessageDetailListComplete();
+            }
         }
     }];
 }
@@ -94,11 +98,16 @@
     cell.h_imgView = self.messageModel.imgHeight;
     cell.imgURl = self.messageModel.thumbUrl;
     if (!isEmptyString_um(self.messageDetailModel.content)) {
-        NSMutableAttributedString *attri_str= [self praseHtmlStr:self.messageDetailModel.content];
+        NSMutableAttributedString *attri_str= [self praseHtmlStr:self.messageDetailModel.content];        
         [attri_str setYy_lineSpacing:0];
         attri_str.yy_minimumLineHeight = 22;
         cell.messageStr = attri_str;
     }
+    cell.clickDetailUrl = ^(NSURL * _Nonnull url) {
+        if(self.clickUrl) {
+            self.clickUrl(url);
+        }
+    };
     return cell;
 }
 
