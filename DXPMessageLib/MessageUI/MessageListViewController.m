@@ -64,7 +64,7 @@
     self.readAllBtn.hidden = YES;
     self.readAllBtn.userInteractionEnabled = NO;
     // hidden naigation
-//    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
     self.tabBarController.tabBar.hidden = NO;
     
     // 恢复界面初始状态
@@ -615,10 +615,14 @@
     MessageDetailViewController *detailVC = [[MessageDetailViewController alloc] init];
 	detailVC.styleModel = self.styleModel;
     detailVC.showMessageDetailListComplete = ^{
-        NSLog(@"站内信详情列表显示完成");
+        if(self.showMessageDetailList) {
+            self.showMessageDetailList();
+        }
     };
     detailVC.clickUrl = ^(NSURL * _Nonnull url) {
-        NSLog(@"点击了%@链接",url);
+        if (self.clickMessageDetailkUrl) {
+            self.clickMessageDetailkUrl(url);
+        }
     };
     @try {
         [detailVC.paramsDic setValue:messageModel forKey:@"messageModel"];

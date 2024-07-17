@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) NSMutableArray<Message *> *messageList;
 @property (nonatomic, strong) PageInfo *pageInfo;
+
+- (NSDictionary *)messageListModelToDictionary;
 @end
 
 
@@ -59,12 +61,16 @@ NS_ASSUME_NONNULL_BEGIN
 // model cell 高度
 - (CGFloat)getCellHeight;
 @property (nonatomic, assign) CGFloat imgHeight;
+
+- (NSDictionary *)toDictionary;
 @end
 
 // add new
 @interface ContentParamMap : UMHJHttpModel
 
 @property (nonatomic, copy) NSString *offerCode;
+
+- (NSDictionary *)toDictionary;
 @end
 
 
@@ -73,6 +79,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *pageSize;
 @property (nonatomic, copy) NSString *currentPage;
 @property (nonatomic, copy) NSString *total;
+
+- (NSDictionary *)toDictionary;
 @end
 
 NS_ASSUME_NONNULL_END
