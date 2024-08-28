@@ -65,6 +65,17 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *oct; // 10
 @property (nonatomic, copy) NSString *nov; // 11
 @property (nonatomic, copy) NSString *dec; // 12
+// segement 选中标题颜色
+@property (nonatomic, strong) UIColor *titleColor;
+// segement 未选中标题颜色
+@property (nonatomic, strong) UIColor *unSelectedTitleColor;
+// segement 选中线颜色
+@property (nonatomic, strong) UIColor *lineColor;
+// 切换标题名称 数组
+@property (nonatomic, strong) NSArray *tabTitleArr;
+
+
+
 @end
 
 NS_ASSUME_NONNULL_END

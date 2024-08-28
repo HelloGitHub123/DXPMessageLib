@@ -38,6 +38,8 @@
     if (self) {
         self.pageSize = 6;
         self.currentPage = 1;
+		self.states = @"";
+		self.msgType = @"";
     }
     return self;
 }
@@ -99,7 +101,7 @@
 - (void)requestMessageListByPageInfoWithBlock:(MessageListBlock)messageListBlock {
     self.messageListBlock = messageListBlock;
     
-    NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)}};
+	NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)},@"msgType":self.msgType,@"State":self.states};
     [self.messageViewModel messageList:dic];
 }
 

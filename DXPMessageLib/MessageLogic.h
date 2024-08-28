@@ -101,6 +101,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) void (^refresMessage)(MessageListModel *messageModel);
 
+// Type分为Message(M)和Notice(N)两种方式
+@property (nonatomic, copy) NSString *msgType;
+
+// State分为A未读和R已读
+@property (nonatomic, copy) NSString *states;
+
 @end
 
 NS_ASSUME_NONNULL_END

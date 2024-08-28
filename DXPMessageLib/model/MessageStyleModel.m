@@ -45,6 +45,10 @@
 		self.oct = @"Oct"; // 10
 		self.nov = @"Nov"; // 11
 		self.dec = @"Dec"; // 12
+		self.titleColor = UIColorFromRGB_um(0x719E19);
+		self.unSelectedTitleColor = UIColorFromRGB_um(0x242424);
+		self.lineColor = UIColorFromRGB_um(0x719E19);
+		self.tabTitleArr = @[@"Message",@"Notice"];
 	}
 	return self;
 }

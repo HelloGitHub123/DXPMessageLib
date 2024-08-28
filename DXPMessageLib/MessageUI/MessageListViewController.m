@@ -16,10 +16,11 @@
 #import <DXPToolsLib/SNAlertMessage.h>
 #import "MessageHeader.h"
 #import "UITableView+umEmptyPlaceholderView.h"
+#import "UMTabSegement.h"
 
 #define cell_Identifier   @"MessageTableViewCellIdentifier"
 
-@interface MessageListViewController ()<UITableViewDelegate,UITableViewDataSource,LYSideslipCellDelegate,MessageDelegate,OperViewDelegate> {
+@interface MessageListViewController ()<UITableViewDelegate,UITableViewDataSource,LYSideslipCellDelegate,MessageDelegate,OperViewDelegate,UMTabSegementDelegate> {
     
 }
 
@@ -34,8 +35,10 @@
 @property (nonatomic, assign) BOOL isEdit;
 //@property (nonatomic, assign) int currentPage;
 
-@property (nonatomic, strong) UIBarButtonItem * rightBtn;
-@property (nonatomic, strong) UIBarButtonItem * cancelBtn;
+@property (nonatomic, strong) UIBarButtonItem * rightBtn; // 编辑按钮
+@property (nonatomic, strong) UIBarButtonItem * cancelBtn; // 取消按钮
+
+@property (nonatomic, strong) UMTabSegement *tabSegement;
 
 @end
 
@@ -44,6 +47,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
+		self.selectedIndexTab = 0;
     }
     return self;
 }
@@ -71,8 +75,6 @@
     self.isEdit = YES;
     [self updateEditState];
 }
-
-
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -172,22 +174,52 @@
     self.isEdit = NO;
     
     [self.view addSubview:self.vTableview];
-    [self.vTableview mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.leading.equalTo(@16);
-        make.trailing.equalTo(@-16);
-        make.top.equalTo(@0);
-        if (@available(iOS 11.0, *)) {
-            make.bottom.mas_equalTo(-self.view.safeAreaInsets.bottom);
-        } else {
-            make.bottom.mas_equalTo(0);
-        }
-    }];
+	
+	if (self.showModelType == ShowModeType_GroupByType || self.showModelType == ShowModeType_GroupByState) {
+		[self.view addSubview:self.tabSegement];
+		self.tabSegement.hidden = NO;
+		self.tabSegement.dataArray = self.styleModel.tabTitleArr;
+		[self.tabSegement mas_makeConstraints:^(MASConstraintMaker *make) {
+			make.width.mas_equalTo(SCREEN_WIDTH_um);
+			make.height.mas_equalTo(56);
+			make.leading.mas_equalTo(0);
+			make.top.mas_equalTo(0);
+		}];
+		
+		[self.vTableview mas_makeConstraints:^(MASConstraintMaker *make) {
+			make.leading.equalTo(@16);
+			make.trailing.equalTo(@-16);
+			make.top.mas_equalTo(self.tabSegement.mas_bottom).offset(16);
+			if (@available(iOS 11.0, *)) {
+				make.bottom.mas_equalTo(-self.view.safeAreaInsets.bottom);
+			} else {
+				make.bottom.mas_equalTo(0);
+			}
+		}];
+		
+	} else {
+		self.tabSegement.hidden = YES;
+		[self.vTableview mas_makeConstraints:^(MASConstraintMaker *make) {
+			make.leading.equalTo(@16);
+			make.trailing.equalTo(@-16);
+			make.top.equalTo(@0);
+			if (@available(iOS 11.0, *)) {
+				make.bottom.mas_equalTo(-self.view.safeAreaInsets.bottom);
+			} else {
+				make.bottom.mas_equalTo(0);
+			}
+		}];
+	}
 }
 
 - (void)viewDidLayoutSubviews {
 }
 
 #pragma mark -- Method
+- (void)setSelectedIndexTab:(int)selectedIndexTab {
+	_selectedIndexTab = selectedIndexTab;
+}
+
 - (void)setToken:(NSString *)token {
 	_token = token;
 	// 设置请求token
@@ -198,9 +230,37 @@
 	_styleModel = styleModel;
 }
 
+// 设置 message/list接口支持按照states和msgType参数
+- (void)setParamForTabType {
+	if (self.showModelType == ShowModeType_GroupByType) {
+		if (self.selectedIndexTab == 0) {
+			// Message
+			self.messageLogic.msgType = @"M";
+		}
+		if (self.selectedIndexTab == 1) {
+			// Notice
+			self.messageLogic.msgType = @"N";
+		}
+	} else if (self.showModelType == ShowModeType_GroupByState) {
+		if (self.selectedIndexTab == 0) {
+			// 未读
+			self.messageLogic.states = @"A";
+		}
+		if (self.selectedIndexTab == 1) {
+			// 已读
+			self.messageLogic.states = @"R";
+		}
+	} else {
+		// 默认
+		self.messageLogic.msgType = @"";
+		self.messageLogic.states = @"";
+	}
+}
+
 // 请求消息列表
 - (void)requestMessageList {
     __weak typeof(self) weakSelf = self;
+	[self setParamForTabType];
     [self.messageLogic requestMessageListByPageInfoWithBlock:^(MessageListModel *messageListModel, NSString *errorMsg) {
         [weakSelf updateMessageList:messageListModel];
     }];
@@ -211,14 +271,13 @@
     if ([self.vTableview.mj_header isRefreshing]) {
         [self.vTableview.mj_header endRefreshing];
     }
+	[self setParamForTabType];
     [self.messageLogic refreshMessageList];
     
     __weak typeof(self) weakSelf = self;
     _messageLogic.refresMessage = ^(MessageListModel * _Nonnull messageModel) {
         [weakSelf updateMessageList:messageModel];
     };
-    
-    
 }
 
 // 上拉加载更多
@@ -226,7 +285,7 @@
     if ([self.vTableview.mj_footer isRefreshing]) {
         [self.vTableview.mj_footer endRefreshing];
     }
-    
+	[self setParamForTabType];
     [self.messageLogic loadMorMessageList];
     
     __weak typeof(self) weakSelf = self;
@@ -640,6 +699,25 @@
 	}
 }
 
+#pragma mark -- UMTabSegementDelegate
+- (void)tabSegementSelectIndex:(NSInteger)index {
+	self.selectedIndexTab = index;
+	
+	[self.messageList removeAllObjects];
+	// 重新请求message/list 接口数据
+	[self setParamForTabType];
+	[self.messageLogic refreshMessageList];
+	
+	__weak typeof(self) weakSelf = self;
+	_messageLogic.refresMessage = ^(MessageListModel * _Nonnull messageModel) {
+		[weakSelf updateMessageList:messageModel];
+	};
+	// 恢复界面初始状态
+	[self.deleteMessageList removeAllObjects];
+	self.isEdit = YES;
+	[self updateEditState];
+}
+
 #pragma mark -- MessageDelegate
 - (void)MessageIsSelectedByMessageId:(NSString *)messageId isSelected:(BOOL)isSelected {
     if (isSelected) {
@@ -695,9 +773,6 @@
 - (MessageLogic *)messageLogic {
     if (!_messageLogic) {
         _messageLogic = [[MessageLogic alloc] init];
-        _messageLogic.pageSize = 8;
-        _messageLogic.currentPage = 2;
-        
     }
     return _messageLogic;
 }
@@ -761,6 +836,17 @@
         _cancelBtn.enabled = YES;
     }
     return _cancelBtn;
+}
+
+- (UMTabSegement *)tabSegement {
+	if (!_tabSegement) {
+		_tabSegement = [[UMTabSegement alloc] init];
+		_tabSegement.selectIndex = self.selectedIndexTab;
+		_tabSegement.delegate = self;
+		[_tabSegement setEqualSplit:YES totalWidth:SCREEN_WIDTH_um];
+		_tabSegement.styleModel = self.styleModel;
+	}
+	return _tabSegement;
 }
 
 #pragma mark -- other
