@@ -11,6 +11,7 @@
 #import "MessageViewModel.h"
 #import "UMDMNetAPIClient.h"
 #import "UMHJRequestProtocolForVM.h"
+#import "MessageHeader.h"
 
 @interface MessageLogic ()<UMHJVMRequestDelegate>
 
@@ -101,8 +102,17 @@
 - (void)requestMessageListByPageInfoWithBlock:(MessageListBlock)messageListBlock {
     self.messageListBlock = messageListBlock;
     
-	NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)},@"msgType":self.msgType,@"State":self.states};
-    [self.messageViewModel messageList:dic];
+	NSDictionary *dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)}};
+	// 就这样吧。懒一点也没事
+	if (!isEmptyString_um(self.msgType) && isEmptyString_um(self.states)) {
+		dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)},@"msgType":self.msgType};
+	} else if (!isEmptyString_um(self.states) && isEmptyString_um(self.msgType)) {
+		dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)},@"states":self.states};
+	} else if (!isEmptyString_um(self.states) && !isEmptyString_um(self.msgType)) {
+		dic = @{@"pageInfo":@{@"currentPage":@(self.currentPage),@"pageSize":@(self.pageSize)},@"states":self.states,@"msgType":self.msgType};
+	}
+
+	[self.messageViewModel messageList:dic];
 }
 
 // Request Message Details
@@ -161,6 +171,7 @@
 
 #pragma mark - UMHJVMRequestDelegate
 - (void)requestSuccess:(NSObject *)vm method:(NSString *)methodFlag {
+	[SNAlertMessage hideLoading];
     if ([methodFlag isEqualToString:Url_Message_Unread]) {
         UnreadMessageModel *model = ((MessageViewModel *)vm).unreadMessageModelRes.data;
         if (self.unreadMessageBlock) {
