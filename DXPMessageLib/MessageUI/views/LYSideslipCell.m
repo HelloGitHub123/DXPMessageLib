@@ -272,6 +272,12 @@ typedef NS_ENUM(NSInteger, LYSideslipCellState) {
         width += (action.image ? action.image.size.width : 0);
         btn.frame = CGRectMake(0, 0, width + action.margin*2, self.frame.size.height);
         
+		// 图片和标题 上下布局
+		if (action.titleImageStyle == LYSideslipCellTitleImageStyleUpDown) {
+			btn.titleEdgeInsets = UIEdgeInsetsMake(40, -action.image.size.width, 0.0, 0.0);
+			btn.imageEdgeInsets = UIEdgeInsetsMake(-20.0, width/2+3 , 0.0, -btn.titleLabel.bounds.size.width);
+		}
+		
         btn.tag = i;
         [btn addTarget:self action:@selector(actionBtnDidClicked:) forControlEvents:UIControlEventTouchUpInside];
         [_btnContainView addSubview:btn];

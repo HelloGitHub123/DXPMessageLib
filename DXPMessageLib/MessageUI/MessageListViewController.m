@@ -749,6 +749,7 @@
         tagAction.image = [UIImage imageNamed:@"read"];
 //        tagAction.title = @"Read";
         tagAction.title = self.styleModel.read;
+		tagAction.titleImageStyle = LYSideslipCellTitleImageStyleUpDown;
         
         [arrayList addObject:tagAction];
     }
@@ -763,6 +764,7 @@
     deleteAction.backgroundColor = UIColorFromRGB_um(0xFA2C2C);
     deleteAction.image = [UIImage imageNamed:@"delete"];
     deleteAction.title = self.styleModel.text_delete;
+	deleteAction.titleImageStyle = LYSideslipCellTitleImageStyleUpDown;
     
     [arrayList addObject:deleteAction];
     

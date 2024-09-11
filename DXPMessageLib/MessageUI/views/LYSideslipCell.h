@@ -16,6 +16,11 @@ typedef NS_ENUM(NSInteger, LYSideslipCellActionStyle) {
     LYSideslipCellActionStyleNormal // 正常 灰底
 };
 
+typedef NS_ENUM(NSInteger, LYSideslipCellTitleImageStyle) {
+	LYSideslipCellTitleImageStyleDefault = 0, // 左图右标题
+	LYSideslipCellTitleImageStyleUpDown = 1,  // 上图下标题
+};
+
 @interface LYSideslipCellAction : NSObject
 + (instancetype)rowActionWithStyle:(LYSideslipCellActionStyle)style title:(nullable NSString *)title handler:(void (^)(LYSideslipCellAction *action, NSIndexPath *indexPath))handler;
 @property (nonatomic, readonly) LYSideslipCellActionStyle style;
@@ -25,6 +30,8 @@ typedef NS_ENUM(NSInteger, LYSideslipCellActionStyle) {
 @property (nonatomic, strong, nullable) UIColor *titleColor;    // 文字颜色. 默认白色
 @property (nonatomic, copy, nullable) UIColor *backgroundColor; // 背景颜色. 默认透明
 @property (nonatomic, assign) CGFloat margin;                   // 内容左右间距. 默认15
+@property (nonatomic, assign) LYSideslipCellTitleImageStyle titleImageStyle; // 标题 图片的位置样式
+
 @end
 
 @class LYSideslipCell;
