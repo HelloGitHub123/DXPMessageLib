@@ -235,11 +235,11 @@
 	if (self.showModelType == ShowModeType_GroupByType) {
 		if (self.selectedIndexTab == 0) {
 			// Message
-			self.messageLogic.msgType = @"M";
+			self.messageLogic.msgType = @"N";
 		}
 		if (self.selectedIndexTab == 1) {
 			// Notice
-			self.messageLogic.msgType = @"N";
+			self.messageLogic.msgType = @"M";
 		}
 	} else if (self.showModelType == ShowModeType_GroupByState) {
 		if (self.selectedIndexTab == 0) {
