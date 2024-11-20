@@ -89,7 +89,7 @@
     [self.navigationController.navigationBar addSubview:self.readAllBtn];
     [self.readAllBtn mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.mas_equalTo(self.navigationController.navigationBar);
-        make.left.mas_equalTo(self.navigationController.navigationBar.mas_left).offset(([[UIScreen mainScreen] bounds].size.width + 80) / 2 + 14);
+        make.leading.mas_equalTo(self.navigationController.navigationBar.mas_leading).offset(([[UIScreen mainScreen] bounds].size.width + 80) / 2 + 14);
         make.size.mas_equalTo(CGSizeMake(24, 24));
     }];
     
