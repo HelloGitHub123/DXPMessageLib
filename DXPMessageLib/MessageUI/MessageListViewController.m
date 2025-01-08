@@ -651,6 +651,7 @@
 	cell.delegate = self;
 	cell.pDelegate = self;
 	cell.styleModel = self.styleModel;
+	cell.dateFormater = self.dateFormater;
 	Message *messageModel = [self.messageList objectAtIndex:indexPath.section];
 	[cell bindCellModel:messageModel isEdit:self.isEdit tableview:tableView];
 	[cell setSelectBtnByState:messageModel.isSelected];

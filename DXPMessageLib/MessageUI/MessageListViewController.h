@@ -32,6 +32,9 @@ typedef NS_ENUM(NSInteger, ShowModeType) {
 // 默认选择第几个tab 默认选中第一个(为0)
 @property (nonatomic, assign) int selectedIndexTab;
 
+// 日期格式化
+@property (nonatomic, copy) NSString *dateFormater;
+
 // 埋点回调抛出
 @property (nonatomic, copy) void (^trackManagementBlock)(NSString *trackName, NSDictionary *withProperties);
 

@@ -25,6 +25,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) MessageStyleModel *styleModel;
 
+// 日期格式化
+@property (nonatomic, copy) NSString *dateFormater;
+
 // 绑定model
 - (void)bindCellModel:(Message *)message isEdit:(BOOL)isEdit tableview:(UITableView *)tableView;
 // 更新cell中选择按钮状态

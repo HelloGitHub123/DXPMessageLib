@@ -11,6 +11,8 @@
 #import <YYText/YYText.h>
 #import "MessageHeader.h"
 
+#define isNull(x)                (!x || [x isKindOfClass:[NSNull class]])
+
 #define cell_Identifier   @"MessageDetailIdentifier"
 
 @interface MessageDetailViewController ()<UITableViewDelegate,UITableViewDataSource>
@@ -188,6 +190,35 @@
 	NSArray *dateArr = [dateStr componentsSeparatedByString:@" "];
 	NSArray *firstArr = [dateArr[0] componentsSeparatedByString:@"-"]; // @[yyyy,mm,dd]
 	NSString *month = [self getMonthEnNameWithStr:firstArr[1]]; // 转换月份为文字
+	
+	if (!isNull(self.dateFormater) || !self.dateFormater) {
+		NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+		[formatter setDateFormat:@"HH:mm:ss"];//输入的日期格式
+		
+		NSDateFormatter *dateFormat = [[NSDateFormatter alloc]init];
+		
+		NSString *dateFormatStr = @"";
+		
+		if ([self.dateFormater containsString:@"hh"]) {
+			dateFormatStr = [NSString stringWithFormat:@"%@%@", dateFormatStr, @"hh:mm:ss"];
+		}
+		
+		if ([self.dateFormater containsString:@"a"]) {
+			dateFormatStr = [NSString stringWithFormat:@"%@ %@", dateFormatStr, @"a"];
+		}
+		
+		[dateFormat setDateFormat:dateFormatStr];//输出的日期格式
+		
+		NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en"];
+		[formatter setLocale:locale];
+		[dateFormat setLocale:locale];
+		
+		NSDate *dateHMS = [formatter dateFromString:dateArr[1]];
+		
+		NSString *formatDate = [NSString stringWithFormat:@"%@ %@ %@ %@",firstArr[2],month,firstArr[0],[dateFormat stringFromDate:dateHMS]];
+		return formatDate;
+	}
+	
 	// 组装
 	NSString *timeString = [NSString stringWithFormat:@"%@ %@ %@ %@",firstArr[2],month,firstArr[0],dateArr[1]];
 	return timeString;

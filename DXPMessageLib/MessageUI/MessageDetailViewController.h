@@ -17,6 +17,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, strong) MessageStyleModel *styleModel;
 
+// 日期格式化
+@property (nonatomic, copy) NSString *dateFormater;
+
 // 列表详情显示完成
 @property (nonatomic, copy) void (^showMessageDetailListComplete)(void);
 
