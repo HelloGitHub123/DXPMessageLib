@@ -12,6 +12,7 @@
 #import "MessageHeader.h"
 
 #define isNull(x)                (!x || [x isKindOfClass:[NSNull class]])
+#define isEmptyString(x)         (isNull(x) || [x isEqual:@""] || [x isEqual:@"(null)"] || [x isEqual:@"null"] || [x isEqual:@"<null>"])
 
 @interface MessageTableViewCell ()
 
@@ -374,7 +375,7 @@
 	NSArray *firstArr = [dateArr[0] componentsSeparatedByString:@"-"]; // @[yyyy,mm,dd]
 	NSString *month = [self getMonthEnNameWithStr:firstArr[1]]; // 转换月份为文字
 	
-	if (!isNull(self.dateFormater) || !self.dateFormater) {
+	if (!isEmptyString(self.dateFormater)) {
 		NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
 		[formatter setDateFormat:@"HH:mm:ss"];//输入的日期格式
 		
@@ -384,6 +385,8 @@
 		
 		if ([self.dateFormater containsString:@"hh"]) {
 			dateFormatStr = [NSString stringWithFormat:@"%@%@", dateFormatStr, @"hh:mm:ss"];
+		} else {
+			dateFormatStr = [NSString stringWithFormat:@"%@%@", dateFormatStr, @"HH:mm:ss"];
 		}
 		
 		if ([self.dateFormater containsString:@"a"]) {

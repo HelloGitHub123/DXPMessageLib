@@ -674,6 +674,7 @@
     // detail
     MessageDetailViewController *detailVC = [[MessageDetailViewController alloc] init];
 	detailVC.styleModel = self.styleModel;
+	detailVC.dateFormater = self.dateFormater;
     detailVC.showMessageDetailListComplete = ^{
         if(self.showMessageDetailList) {
             self.showMessageDetailList();
