@@ -19,7 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) UIImageView *imgView;
 @property (nonatomic, copy) NSString *imgURl;
 @property (nonatomic, assign) CGFloat h_imgView;
-@property (nonatomic, copy) NSMutableAttributedString *messageStr;
+//@property (nonatomic, copy) NSMutableAttributedString *messageStr;
+@property (nonatomic, copy) NSString *messageStr;
 
 // 点击了URL
 @property (nonatomic, copy) void (^clickDetailUrl)(NSURL *url);

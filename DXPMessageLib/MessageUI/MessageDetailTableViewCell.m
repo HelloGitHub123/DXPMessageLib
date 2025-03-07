@@ -10,9 +10,11 @@
 #import <SDWebImage/SDImageCache.h>
 #import "MessageLogic.h"
 #import "MessageHeader.h"
+#import <WebKit/WebKit.h>
 
-@interface MessageDetailTableViewCell ()<UITextViewDelegate>
+@interface MessageDetailTableViewCell ()<UITextViewDelegate,WKNavigationDelegate>
 
+@property (nonatomic, strong) WKWebView *webview;
 @end
 
 @implementation MessageDetailTableViewCell
@@ -28,7 +30,8 @@
 - (void)createSubViews {
     [self.contentView addSubview:self.messageTitleLab];
     [self.contentView addSubview:self.messageDateLab];
-    [self.contentView addSubview:self.messageTextView];
+	//	[self.contentView addSubview:self.messageTextView];
+	[self.contentView addSubview:self.webview];
     [self.contentView addSubview:self.imgView];
 }
 
@@ -36,7 +39,7 @@
     [super layoutSubviews];
     
     if (!self.messageTitleLab.text) {
-        [self.messageTextView mas_updateConstraints:^(MASConstraintMaker *make) {
+        [self.webview mas_updateConstraints:^(MASConstraintMaker *make) {
             make.left.mas_equalTo(self.contentView.mas_left).offset(20);
             make.top.mas_equalTo(self.contentView.mas_top).offset(30);
             make.right.mas_equalTo(self.contentView.mas_right).offset(-20);
@@ -59,17 +62,19 @@
         make.height.equalTo(@14);
     }];
 
-    [self.messageTextView mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.webview mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(self.messageDateLab);
         make.top.mas_equalTo(self.messageDateLab.mas_bottom).offset(20);
         make.right.mas_equalTo(self.contentView.mas_right).offset(-20);
-        make.height.greaterThanOrEqualTo(@20);
+//        make.height.greaterThanOrEqualTo(@20);
+		make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-self.h_imgView);
     }];
     
     [self.imgView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.mas_equalTo(self.contentView.mas_left).offset(20);
         make.right.mas_equalTo(self.contentView.mas_right).offset(-20);
-        make.top.mas_equalTo(self.messageTextView.mas_bottom).offset(20);
+//        make.top.mas_equalTo(self.messageTextView.mas_bottom).offset(20);
+		make.top.mas_equalTo(self.webview.mas_bottom).offset(20);
         make.height.equalTo(@(self.h_imgView));
         //        make.bottom.mas_equalTo(self.contentView.mas_bottom).offset(-11);
     }];
@@ -84,22 +89,42 @@
     }];
 }
 
-- (void)setMessageStr:(NSMutableAttributedString *)messageStr {
-    _messageStr = messageStr;
-    
-    _messageTextView.attributedText = _messageStr;
-    _messageTextView.textColor = UIColorFromRGB_um(0x242424);
-	_messageTextView.font = [UIFont systemFontOfSize:14];
-    
-    CGFloat fixedWidth = _messageTextView.frame.size.width;
-    CGSize newSize = [_messageStr boundingRectWithSize:CGSizeMake(fixedWidth, MAXFLOAT)
-                                             options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
-                                             context:nil].size;
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+	if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
+		NSURL *URL = navigationAction.request.URL;
+		if (!isEmptyString([URL absoluteString])) {
+			if(self.clickDetailUrl) {
+				self.clickDetailUrl(URL);
+			}
+			decisionHandler(WKNavigationActionPolicyAllow);
+		} else {
+			decisionHandler(WKNavigationActionPolicyCancel);
+		}
+	} else {
+		decisionHandler(WKNavigationActionPolicyAllow);
+	}
+}
 
-    CGFloat newHeight = ceil(newSize.height); // 取上整，以确保内容完全显示
-    [self.messageTextView mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.height.greaterThanOrEqualTo(@(newHeight)); // 更新高度约束
-    }];
+- (void)setMessageStr:(NSString *)messageStr {
+	_messageStr = messageStr;
+	
+	NSString *string = [NSString stringWithFormat:@"%@%@%@",@"<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=0\" /</head><body>",messageStr,@"</body></html>"];
+	
+	[self.webview loadHTMLString:string baseURL:nil];
+	
+	//	_messageTextView.attributedText = _messageStr;
+	//	_messageTextView.textColor = UIColorFromRGB(0x242424);
+	//	_messageTextView.font = systemFont(14);
+	//
+	//	CGFloat fixedWidth = _messageTextView.frame.size.width;
+	//	CGSize newSize = [_messageStr boundingRectWithSize:CGSizeMake(fixedWidth, MAXFLOAT)
+	//											   options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+	//											   context:nil].size;
+	//
+	//	CGFloat newHeight = ceil(newSize.height); // 取上整，以确保内容完全显示
+	//	[self.messageTextView mas_updateConstraints:^(MASConstraintMaker *make) {
+	//		make.height.greaterThanOrEqualTo(@(newHeight)); // 更新高度约束
+	//	}];
 }
 
 #pragma mark - UITextViewDelegate 点富文本
@@ -134,17 +159,25 @@
     return _messageDateLab;
 }
 
-- (UITextView *)messageTextView {
-    if (!_messageTextView) {
-        _messageTextView = [[UITextView alloc] init];
-        _messageTextView.editable = NO;
-        _messageTextView.scrollEnabled = NO;
-        _messageTextView.delegate = self;
-        _messageTextView.textColor = UIColorFromRGB_um(0x242424);
-		_messageTextView.font = [UIFont systemFontOfSize:14];
-        _messageTextView.dataDetectorTypes = UIDataDetectorTypeAll;
-    }
-    return _messageTextView;
+//- (UITextView *)messageTextView {
+//    if (!_messageTextView) {
+//        _messageTextView = [[UITextView alloc] init];
+//        _messageTextView.editable = NO;
+//        _messageTextView.scrollEnabled = NO;
+//        _messageTextView.delegate = self;
+//        _messageTextView.textColor = UIColorFromRGB_um(0x242424);
+//		_messageTextView.font = [UIFont systemFontOfSize:14];
+//        _messageTextView.dataDetectorTypes = UIDataDetectorTypeAll;
+//    }
+//    return _messageTextView;
+//}
+
+- (WKWebView *)webview {
+	if (!_webview) {
+		_webview = [[WKWebView alloc] init];
+		_webview.navigationDelegate = self;
+	}
+	return _webview;
 }
 
 - (UIImageView *)imgView {

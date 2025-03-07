@@ -104,7 +104,8 @@
         NSMutableAttributedString *attri_str= [self praseHtmlStr:self.messageDetailModel.content];        
         [attri_str setYy_lineSpacing:0];
         attri_str.yy_minimumLineHeight = 22;
-        cell.messageStr = attri_str;
+//        cell.messageStr = attri_str;
+		cell.messageStr = self.messageDetailModel.content; //attri_str;
     }
     cell.clickDetailUrl = ^(NSURL * _Nonnull url) {
         if(self.clickUrl) {
