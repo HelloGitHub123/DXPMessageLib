@@ -92,7 +92,7 @@
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 	if (navigationAction.navigationType == WKNavigationTypeLinkActivated) {
 		NSURL *URL = navigationAction.request.URL;
-		if (!isEmptyString([URL absoluteString])) {
+		if ([URL absoluteString].length > 0) {
 			if(self.clickDetailUrl) {
 				self.clickDetailUrl(URL);
 			}
