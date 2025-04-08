@@ -203,7 +203,15 @@
     }
     // 文本内容
 	if (message.brief && ![message.brief isEqualToString:@""]) {
-		self.contentLab.text = message.brief;
+		
+		
+		NSString *brief = message.brief;
+		brief= [brief stringByReplacingOccurrencesOfString:@"</p>" withString:@""];
+		brief= [brief stringByReplacingOccurrencesOfString:@"<p>" withString:@""];
+		brief= [brief stringByReplacingOccurrencesOfString:@"</br>" withString:@""];
+		brief= [brief stringByReplacingOccurrencesOfString:@"<br>" withString:@""];
+		
+		self.contentLab.text = brief;
         NSMutableParagraphStyle *paragraphStyle = [NSMutableParagraphStyle new];
         [paragraphStyle setLineBreakMode:NSLineBreakByTruncatingTail];
         // 行高
