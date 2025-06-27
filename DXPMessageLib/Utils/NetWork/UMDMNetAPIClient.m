@@ -96,6 +96,8 @@ static dispatch_once_t onceToken;
     [self.requestSerializer setValue:versionCodeStr forHTTPHeaderField:@"Terminal-Version"];
     [self.requestSerializer setValue:self.reqToken forHTTPHeaderField:@"Token"]; // todo
     
+	[self.requestSerializer setValue:[[NSUserDefaults standardUserDefaults] valueForKey:@"cx_language"] forHTTPHeaderField:@"locale"];
+	
     if ([aPath containsString:@"/i18n/app/up3/local.json"]) {
         self.requestSerializer.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
     } else {
